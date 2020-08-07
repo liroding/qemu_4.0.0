@@ -734,7 +734,8 @@ static void
 start_xmit(E1000State *s)
 {
     
-    printf("[LIRO-DENUG] --------------File= %s  Func=%s ---- LINE=%d   <beg>\n  ",__FILE__,__func__,__LINE__);
+    printf("[LIRO-DENUG] --------------File= %s  Func=%s ---- LINE=%d   <beg>\n",__FILE__,__func__,__LINE__);
+
     PCIDevice *d = PCI_DEVICE(s);
     dma_addr_t base;
     struct e1000_tx_desc desc;
@@ -745,10 +746,17 @@ start_xmit(E1000State *s)
         return;
     }
 
+
     while (s->mac_reg[TDH] != s->mac_reg[TDT]) {
         base = tx_desc_base(s) +
                sizeof(struct e1000_tx_desc) * s->mac_reg[TDH];
+
         pci_dma_read(d, base, &desc, sizeof(desc));
+
+        printf("    -->[LIRO-DENUG] -------[INFO: descriptor_index %d, desc_bufaddr= %p,desc_lowdata=0x%x,desc_upperdata=0x %x ]\n", s->mac_reg[TDH],
+               (void *)(intptr_t)desc.buffer_addr, desc.lower.data,
+               desc.upper.data);
+
 
         DBGOUT(TX, "index %d: %p : %x %x\n", s->mac_reg[TDH],
                (void *)(intptr_t)desc.buffer_addr, desc.lower.data,
@@ -772,7 +780,7 @@ start_xmit(E1000State *s)
         }
     }
     set_ics(s, 0, cause);
-    printf("[LIRO-DENUG] --------------File= %s  Func=%s ---- LINE=%d   <end>\n  ",__FILE__,__func__,__LINE__);
+    printf("[LIRO-DENUG] --------------File= %s  Func=%s ---- LINE=%d   <end>\n\n",__FILE__,__func__,__LINE__);
 }
 
 static int
