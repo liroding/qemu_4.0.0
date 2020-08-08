@@ -25,6 +25,18 @@
 #include "exec/cpu_ldst.h"
 #include "exec/address-spaces.h"
 
+
+
+
+//enoch
+#define IA32_HOOK_START     1
+#define IA32_HOOK_INSERT    2
+#define IA32_HOOK_STOP      3
+//zx_plist_t zx_g_hook_ad_list;
+static uint8_t start_hook_addr = 0;
+
+uint64_t cr3_mark;
+
 void helper_outb(CPUX86State *env, uint32_t port, uint32_t data)
 {
 #ifdef CONFIG_USER_ONLY
@@ -97,6 +109,62 @@ void helper_into(CPUX86State *env, int next_eip_addend)
         raise_interrupt(env, EXCP04_INTO, 1, 0, next_eip_addend);
     }
 }
+void helper_mark(CPUX86State *env)
+{
+    cr3_mark = env->cr[3];
+}
+void helper_insert_hook_addr(CPUX86State *env)
+{
+
+	//enoch
+    //linklist to hook addr range
+
+    if(IA32_HOOK_START == env->regs[R_EAX]) {
+        start_hook_addr = 1;
+        printf("Start hook address.\n");
+    }
+
+    /*
+    else if (IA32_HOOK_STOP == env->regs[R_EAX]) {
+        start_hook_addr = 0;
+        //destroy hook addr list
+        destroy_list(zx_g_hook_ad_list);
+        if(zx_g_hook_ad_list) {
+            zx_g_hook_ad_list = NULL;
+        }
+        printf("Stop hook address.\n");
+    } else if (IA32_HOOK_INSERT == env->regs[R_EAX] && start_hook_addr) {
+
+        uint64_t start_addr = env->regs[R_EBX];
+        uint64_t size = env->regs[R_ECX];
+        X86CPU *cpu = x86_env_get_cpu(env);
+        zx_hook_t hook_addr;
+
+        hook_addr.addr_low = start_addr;
+        hook_addr.addr_high = start_addr + size - 1;
+
+        list_tail_insert(&zx_g_hook_ad_list, hook_addr);
+
+        printf("Insert hook address[%llx, %llx].\n", hook_addr.addr_low, hook_addr.addr_high);
+
+        //update 11/8 2018 for flush all insert addr's tlb
+        //tlb_flush_page(cpu, hook_addr.addr_low);
+        //tlb_flush_page(cpu, hook_addr.addr_high);
+        uint64_t i = 0;
+        for(i = hook_addr.addr_low; i <= hook_addr.addr_high; i+=4096) {
+            //tlb_flush_page(cpu, i);
+            tlb_flush_page_all_cpus(cpu, i);
+        }
+        //tlb_flush_page(cpu, hook_addr.addr_high);
+        tlb_flush_page_all_cpus(cpu, hook_addr.addr_high);
+    }
+    */
+}
+void helper_endmark(CPUX86State *env)
+{
+    cr3_mark = 0;
+}
+
 
 void helper_cpuid(CPUX86State *env)
 {

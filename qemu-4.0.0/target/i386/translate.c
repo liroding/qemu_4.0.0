@@ -4653,6 +4653,9 @@ static target_ulong disas_insn(DisasContext *s, CPUState *cpu)
     s->dflag = dflag;
 
     /* now check op code */
+    //add by enoch
+    uint64_t hook_gva_start = 0;
+    uint64_t hook_size = 0;
  reswitch:
     switch(b) {
     case 0x0f:
@@ -4724,6 +4727,37 @@ static target_ulong disas_insn(DisasContext *s, CPUState *cpu)
         }
         break;
 
+    /**********************add by liro**************************/
+    case 0x13c:
+        gen_helper_insert_hook_addr(cpu_env);
+        //b = cpu_ldub_code(env, s->pc++) | 0x600;
+        //goto reswitch;
+        //printf("EAX=%llx, EBX=%llx.\n", cpu_regs[R_EAX], cpu_regs[R_EBX]);
+        break;
+
+    case 0x601:
+        gen_helper_mark(cpu_env);
+        break;
+
+    case 0x602:
+        gen_helper_endmark(cpu_env);
+        break;
+
+    case 0x603:
+        //insn_get(env, s, MO_32);
+        //insn_get(env, s, MO_16);
+        //insn_get(env, s, MO_8);
+        s->pc+= 4;
+        s->pc+= 2;
+        s->pc++;
+        hook_size = insn_get(env, s, MO_32);
+        //insn_get(env, s, MO_8);
+        s->pc ++;
+        hook_gva_start = insn_get(env, s, MO_32);
+        printf("Hook start=%x,size=%x.\n", hook_gva_start, hook_size);
+        //gen_helper_endmark(cpu_env);
+        break;
+        /**************************************************/
     case 0x82:
         if (CODE64(s))
             goto illegal_op;
