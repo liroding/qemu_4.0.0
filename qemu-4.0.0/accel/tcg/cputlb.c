@@ -878,7 +878,9 @@ static uint64_t io_readx(CPUArchState *env, CPUIOTLBEntry *iotlbentry,
         CPUTLBEntry *entry;
         target_ulong tlb_addr;
 
-        tlb_fill(cpu, addr, size, MMU_DATA_LOAD, mmu_idx, retaddr);
+        //enoch modify
+        //tlb_fill(cpu, addr, size, MMU_DATA_LOAD, mmu_idx, retaddr);
+        tlb_fill(cpu, addr, size, MMU_DATA_LOAD, mmu_idx, retaddr, NULL);
 
         entry = tlb_entry(env, mmu_idx, addr);
         tlb_addr = entry->addr_read;
@@ -945,7 +947,9 @@ static void io_writex(CPUArchState *env, CPUIOTLBEntry *iotlbentry,
         CPUTLBEntry *entry;
         target_ulong tlb_addr;
 
-        tlb_fill(cpu, addr, size, MMU_DATA_STORE, mmu_idx, retaddr);
+        //enoch modify
+        //tlb_fill(cpu, addr, size, MMU_DATA_STORE, mmu_idx, retaddr);
+        tlb_fill(cpu, addr, size, MMU_DATA_STORE, mmu_idx, retaddr, NULL);
 
         entry = tlb_entry(env, mmu_idx, addr);
         tlb_addr = tlb_addr_write(entry);
@@ -1044,7 +1048,11 @@ tb_page_addr_t get_page_addr_code(CPUArchState *env, target_ulong addr)
 
     if (unlikely(!tlb_hit(entry->addr_code, addr))) {
         if (!VICTIM_TLB_HIT(addr_code, addr)) {
-            tlb_fill(ENV_GET_CPU(env), addr, 0, MMU_INST_FETCH, mmu_idx, 0);
+
+            //enoch modify
+            //tlb_fill(ENV_GET_CPU(env), addr, 0, MMU_INST_FETCH, mmu_idx, 0);
+            tlb_fill(ENV_GET_CPU(env), addr, 0, MMU_INST_FETCH, mmu_idx, 0, NULL);
+
             index = tlb_index(env, mmu_idx, addr);
             entry = tlb_entry(env, mmu_idx, addr);
         }
@@ -1082,8 +1090,11 @@ void probe_write(CPUArchState *env, target_ulong addr, int size, int mmu_idx,
     if (!tlb_hit(tlb_addr_write(entry), addr)) {
         /* TLB entry is for a different page */
         if (!VICTIM_TLB_HIT(addr_write, addr)) {
+            //enoch modify
+            //tlb_fill(ENV_GET_CPU(env), addr, size, MMU_DATA_STORE,
+            //         mmu_idx, retaddr);
             tlb_fill(ENV_GET_CPU(env), addr, size, MMU_DATA_STORE,
-                     mmu_idx, retaddr);
+                     mmu_idx, retaddr, NULL);
         }
     }
 }
@@ -1125,8 +1136,11 @@ static void *atomic_mmu_lookup(CPUArchState *env, target_ulong addr,
     /* Check TLB entry and enforce page permissions.  */
     if (!tlb_hit(tlb_addr, addr)) {
         if (!VICTIM_TLB_HIT(addr_write, addr)) {
+            //enoch modify
+            //tlb_fill(ENV_GET_CPU(env), addr, 1 << s_bits, MMU_DATA_STORE,
+            //         mmu_idx, retaddr);
             tlb_fill(ENV_GET_CPU(env), addr, 1 << s_bits, MMU_DATA_STORE,
-                     mmu_idx, retaddr);
+                     mmu_idx, retaddr, NULL);
             index = tlb_index(env, mmu_idx, addr);
             tlbe = tlb_entry(env, mmu_idx, addr);
         }
@@ -1142,8 +1156,11 @@ static void *atomic_mmu_lookup(CPUArchState *env, target_ulong addr,
 
     /* Let the guest notice RMW on a write-only page.  */
     if (unlikely(tlbe->addr_read != (tlb_addr & ~TLB_NOTDIRTY))) {
+        //enoch modify
+        //tlb_fill(ENV_GET_CPU(env), addr, 1 << s_bits, MMU_DATA_LOAD,
+        //         mmu_idx, retaddr);
         tlb_fill(ENV_GET_CPU(env), addr, 1 << s_bits, MMU_DATA_LOAD,
-                 mmu_idx, retaddr);
+                 mmu_idx, retaddr, NULL);
         /* Since we don't support reads and writes to different addresses,
            and we do have the proper page loaded for write, this shouldn't
            ever return.  But just in case, handle via stop-the-world.  */

@@ -366,7 +366,10 @@ static hwaddr get_hphys(CPUState *cs, hwaddr gphys, MMUAccessType access_type,
  * 1  = generate PF fault
  */
 int x86_cpu_handle_mmu_fault(CPUState *cs, vaddr addr, int size,
-                             int is_write1, int mmu_idx)
+//enoch modify begin
+		                             //int is_write1, int mmu_idx)
+		                             int is_write1, int mmu_idx, uint64_t *p_gpa)
+//enoch modify end
 {
     X86CPU *cpu = X86_CPU(cs);
     CPUX86State *env = &cpu->env;
@@ -660,6 +663,10 @@ do_check_protect_pse36:
        avoid filling it too fast */
     vaddr = addr & TARGET_PAGE_MASK;
     paddr &= TARGET_PAGE_MASK;
+
+    //enoch add begin
+    if(p_gpa) *p_gpa = paddr;
+    //enoch add end
 
     assert(prot & (1 << is_write1));
     tlb_set_page_with_attrs(cs, vaddr, paddr, cpu_get_mem_attrs(env),

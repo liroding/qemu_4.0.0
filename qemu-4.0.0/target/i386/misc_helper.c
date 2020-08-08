@@ -24,15 +24,14 @@
 #include "exec/exec-all.h"
 #include "exec/cpu_ldst.h"
 #include "exec/address-spaces.h"
-
-
+#include "zx_utils/zx_linklist.h"
 
 
 //enoch
 #define IA32_HOOK_START     1
 #define IA32_HOOK_INSERT    2
 #define IA32_HOOK_STOP      3
-//zx_plist_t zx_g_hook_ad_list;
+zx_plist_t zx_g_hook_ad_list;
 static uint8_t start_hook_addr = 0;
 
 uint64_t cr3_mark;
@@ -123,8 +122,6 @@ void helper_insert_hook_addr(CPUX86State *env)
         start_hook_addr = 1;
         printf("Start hook address.\n");
     }
-
-    /*
     else if (IA32_HOOK_STOP == env->regs[R_EAX]) {
         start_hook_addr = 0;
         //destroy hook addr list
@@ -158,7 +155,7 @@ void helper_insert_hook_addr(CPUX86State *env)
         //tlb_flush_page(cpu, hook_addr.addr_high);
         tlb_flush_page_all_cpus(cpu, hook_addr.addr_high);
     }
-    */
+
 }
 void helper_endmark(CPUX86State *env)
 {

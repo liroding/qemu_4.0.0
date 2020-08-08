@@ -481,8 +481,10 @@ struct MemoryRegionSection *iotlb_to_section(CPUState *cpu,
  * be discarded and looked up again (e.g. via tlb_entry()).
  */
 void tlb_fill(CPUState *cpu, target_ulong addr, int size,
-              MMUAccessType access_type, int mmu_idx, uintptr_t retaddr);
-
+//enoch modify begin
+		              //MMUAccessType access_type, int mmu_idx, uintptr_t retaddr);
+		              MMUAccessType access_type, int mmu_idx, uintptr_t retaddr, uint64_t *p_gpa);
+//enoch modify end
 #endif
 
 #if defined(CONFIG_USER_ONLY)

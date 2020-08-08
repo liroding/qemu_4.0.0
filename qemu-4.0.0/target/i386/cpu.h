@@ -1656,7 +1656,10 @@ void host_vendor_fms(char *vendor, int *family, int *model, int *stepping);
 
 /* helper.c */
 int x86_cpu_handle_mmu_fault(CPUState *cpu, vaddr addr, int size,
-                             int is_write, int mmu_idx);
+//enoch modify begin
+		                             //int is_write, int mmu_idx);
+		                             int is_write, int mmu_idx, uint64_t *p_gpa);
+//enoch modify end
 void x86_cpu_set_a20(X86CPU *cpu, int a20_state);
 
 #ifndef CONFIG_USER_ONLY
