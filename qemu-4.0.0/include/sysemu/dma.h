@@ -114,12 +114,15 @@ static inline int dma_memory_rw(AddressSpace *as, dma_addr_t addr,
 static inline int dma_memory_read(AddressSpace *as, dma_addr_t addr,
                                   void *buf, dma_addr_t len)
 {
-    return dma_memory_rw(as, addr, buf, len, DMA_DIRECTION_TO_DEVICE);
+  
+     printf("[LIRO-DEBUG] [Info: dma_addr= 0x%x -- dma_len= 0x%x ] File =%s -- Func=%s -- Line=%d\n",addr,len,__FILE__,__func__,__LINE__);   
+     return dma_memory_rw(as, addr, buf, len, DMA_DIRECTION_TO_DEVICE);
 }
 
 static inline int dma_memory_write(AddressSpace *as, dma_addr_t addr,
                                    const void *buf, dma_addr_t len)
 {
+     printf("[LIRO-DEBUG] [Info: dma_addr= 0x%x -- dma_len= 0x%x ] File =%s -- Func=%s -- Line=%d\n",addr,len,__FILE__,__func__,__LINE__);   
     return dma_memory_rw(as, addr, (void *)buf, len,
                          DMA_DIRECTION_FROM_DEVICE);
 }

@@ -748,6 +748,11 @@ start_xmit(E1000State *s)
 
 
     while (s->mac_reg[TDH] != s->mac_reg[TDT]) {
+
+
+    	printf("!!! [LIRO-DEBUG] TDT = %x\n",s->mac_reg[TDT]);
+
+
         base = tx_desc_base(s) +
                sizeof(struct e1000_tx_desc) * s->mac_reg[TDH];
 
@@ -903,6 +908,9 @@ e1000_receive_iov(NetClientState *nc, const struct iovec *iov, int iovcnt)
     if (!e1000x_hw_rx_enabled(s->mac_reg)) {
         return -1;
     }
+    printf("[LIRO-DENUG] --------------File= %s  Func=%s ---- LINE=%d   <beg>\n",__FILE__,__func__,__LINE__);
+    printf("[LIRO_DEBUG]: Receive the total data size=0x%lx\n",size);
+
 
     if (timer_pending(s->flush_queue_timer)) {
         return 0;
@@ -962,6 +970,10 @@ e1000_receive_iov(NetClientState *nc, const struct iovec *iov, int iovcnt)
             desc_size = s->rxbuf_size;
         }
         base = rx_desc_base(s) + sizeof(desc) * s->mac_reg[RDH];
+
+    	printf("!!! [LIRO-DEBUG] RDH = %x\n",s->mac_reg[RDH]);
+
+
         pci_dma_read(d, base, &desc, sizeof(desc));
         desc.special = vlan_special;
         desc.status |= (vlan_status | E1000_RXD_STAT_DD);
@@ -1021,6 +1033,8 @@ e1000_receive_iov(NetClientState *nc, const struct iovec *iov, int iovcnt)
         n |= E1000_ICS_RXDMT0;
 
     set_ics(s, 0, n);
+
+    printf("[LIRO-DENUG] --------------File= %s  Func=%s ---- LINE=%d   <end>\n\n",__FILE__,__func__,__LINE__);
 
     return size;
 }
@@ -1301,8 +1315,13 @@ static void
 e1000_mmio_write(void *opaque, hwaddr addr, uint64_t val,
                  unsigned size)
 {
+
+
     E1000State *s = opaque;
     unsigned int index = (addr & 0x1ffff) >> 2;
+
+	printf("[LIRO-DEBUG]: --- <E1000: MMIO write>   [INFO: reg=0x%llx value=0x%llx size=0x%llx func=%s ]\n",index<<2,val,size,__func__);
+
 
     if (index < NWRITEOPS && macreg_writeops[index]) {
         if (!(mac_reg_access[index] & MAC_ACCESS_FLAG_NEEDED)
@@ -1323,13 +1342,20 @@ e1000_mmio_write(void *opaque, hwaddr addr, uint64_t val,
         DBGOUT(UNKNOWN, "MMIO unknown write addr=0x%08x,val=0x%08"PRIx64"\n",
                index<<2, val);
     }
+
+
+
 }
 
 static uint64_t
 e1000_mmio_read(void *opaque, hwaddr addr, unsigned size)
 {
+
+
     E1000State *s = opaque;
     unsigned int index = (addr & 0x1ffff) >> 2;
+
+	printf("[LIRO-DEBUG]: --- <E1000: MMIO Read>   [INFO: reg=0x%llx size=0x%llx func=%s ]\n",index<<2,size,__func__);
 
     if (index < NREADOPS && macreg_readops[index]) {
         if (!(mac_reg_access[index] & MAC_ACCESS_FLAG_NEEDED)

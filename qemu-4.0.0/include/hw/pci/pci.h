@@ -784,15 +784,17 @@ static inline int pci_dma_read(PCIDevice *dev, dma_addr_t addr,
                                void *buf, dma_addr_t len)
 {
 
-    printf("  -->[LIRO-DENUG] ---<%s:PCI_DMA_REDA> [INFO: paddr = 0x%x Len = 0x%x ]  File= %s  Func=%s ---- LINE=%d\n",dev->name,addr,len,__FILE__,__func__,__LINE__);
-    return pci_dma_rw(dev, addr, buf, len, DMA_DIRECTION_TO_DEVICE);
+  //  printf("  -->[LIRO-DENUG] ---<%s:PCI_DMA_REDA> [INFO: paddr = 0x%x Len = 0x%x ]  File= %s  Func=%s ---- LINE=%d\n",dev->name,addr,len,__FILE__,__func__,__LINE__);
+	printf("  -->[LIRO-DENUG] ---<%s:PCI_DMA_REDA>  [INFO: paddr = 0x%x Len = 0x%x ]  Func=%s ---- LINE=%d\n",dev->name,addr,len,__func__,__LINE__);
+	return pci_dma_rw(dev, addr, buf, len, DMA_DIRECTION_TO_DEVICE);
 }
 
 static inline int pci_dma_write(PCIDevice *dev, dma_addr_t addr,
                                 const void *buf, dma_addr_t len)
 {
-    printf("  -->[LIRO-DENUG] ---<%s:PCI_DMA_WRITE> [INFO: paddr = 0x%x Len = 0x%x ]  File= %s  Func=%s ---- LINE=%d\n",dev->name,addr,len,__FILE__,__func__,__LINE__);
-    return pci_dma_rw(dev, addr, (void *) buf, len, DMA_DIRECTION_FROM_DEVICE);
+//    printf("  -->[LIRO-DENUG] ---<%s:PCI_DMA_WRITE> [INFO: paddr = 0x%x Len = 0x%x ]  File= %s  Func=%s ---- LINE=%d\n",dev->name,addr,len,__FILE__,__func__,__LINE__);
+	  printf("  -->[LIRO-DENUG] ---<%s:PCI_DMA_WRITE> [INFO: paddr = 0x%x Len = 0x%x ]  Func=%s ---- LINE=%d\n",dev->name,addr,len,__func__,__LINE__);
+	return pci_dma_rw(dev, addr, (void *) buf, len, DMA_DIRECTION_FROM_DEVICE);
 }
 
 #define PCI_DMA_DEFINE_LDST(_l, _s, _bits)                              \
