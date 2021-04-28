@@ -36,6 +36,9 @@ static uint8_t start_hook_addr = 0;
 
 uint64_t cr3_mark;
 
+//liro debug add
+//#define LIRO_DEBUG_MONITOR_MWAIT
+
 void helper_outb(CPUX86State *env, uint32_t port, uint32_t data)
 {
 #ifdef CONFIG_USER_ONLY
@@ -286,14 +289,23 @@ void helper_rdpmc(CPUX86State *env)
 #if defined(CONFIG_USER_ONLY)
 void helper_wrmsr(CPUX86State *env)
 {
+#ifdef LIRO_DEBUG_MONITOR_MWAIT
+    printf("hook write msr cmd success !!\n");
+#endif
 }
 
 void helper_rdmsr(CPUX86State *env)
 {
+#ifdef LIRO_DEBUG_MONITOR_MWAIT
+    printf("hook read msr cmd success !!\n");
+#endif
 }
 #else
 void helper_wrmsr(CPUX86State *env)
 {
+#ifdef LIRO_DEBUG_MONITOR_MWAIT
+    printf("hook write msr cmd success !!\n");
+#endif
     uint64_t val;
 
     cpu_svm_check_intercept_param(env, SVM_EXIT_MSR, 1, GETPC());
@@ -454,6 +466,9 @@ void helper_wrmsr(CPUX86State *env)
 
 void helper_rdmsr(CPUX86State *env)
 {
+#ifdef LIRO_DEBUG_MONITOR_MWAIT
+    printf("hook read msr cmd success !!\n");
+#endif
     uint64_t val;
 
     cpu_svm_check_intercept_param(env, SVM_EXIT_MSR, 0, GETPC());
@@ -615,13 +630,17 @@ static void do_pause(X86CPU *cpu)
 
 static void do_hlt(X86CPU *cpu)
 {
+
     CPUState *cs = CPU(cpu);
     CPUX86State *env = &cpu->env;
 
     env->hflags &= ~HF_INHIBIT_IRQ_MASK; /* needed if sti is just before */
     cs->halted = 1;
     cs->exception_index = EXCP_HLT;
+
+
     cpu_loop_exit(cs);
+
 }
 
 void helper_hlt(CPUX86State *env, int next_eip_addend)
@@ -636,15 +655,24 @@ void helper_hlt(CPUX86State *env, int next_eip_addend)
 
 void helper_monitor(CPUX86State *env, target_ulong ptr)
 {
+#ifdef LIRO_DEBUG_MONITOR_MWAIT
+    printf("hook monitor cmd success !!\n");
+#endif
     if ((uint32_t)env->regs[R_ECX] != 0) {
         raise_exception_ra(env, EXCP0D_GPF, GETPC());
     }
     /* XXX: store address? */
     cpu_svm_check_intercept_param(env, SVM_EXIT_MONITOR, 0, GETPC());
+
+
 }
 
 void helper_mwait(CPUX86State *env, int next_eip_addend)
 {
+#ifdef LIRO_DEBUG_MONITOR_MWAIT
+    printf("hook mwait cmd success !!\n");
+    printf("0x%x 0x%x\n",(uint32_t)env->regs[R_EAX],(uint32_t)env->regs[R_ECX]);
+#endif
     CPUState *cs;
     X86CPU *cpu;
 
@@ -656,12 +684,31 @@ void helper_mwait(CPUX86State *env, int next_eip_addend)
 
     cpu = x86_env_get_cpu(env);
     cs = CPU(cpu);
+
+#ifdef LIRO_DEBUG_MONITOR_MWAIT
+    printf("p1!!\n");
+
+#endif
+
+
     /* XXX: not complete but not completely erroneous */
     if (cs->cpu_index != 0 || CPU_NEXT(cs) != NULL) {
-        do_pause(cpu);
+#ifdef LIRO_DEBUG_MONITOR_MWAIT
+    printf("p2!!\n");
+#endif
+    //do_hlt(cpu);
+      do_pause(cpu);
+
     } else {
+#ifdef LIRO_DEBUG_MONITOR_MWAIT
+    printf("p3!!\n");
+#endif
         do_hlt(cpu);
+
     }
+
+
+
 }
 
 void helper_pause(CPUX86State *env, int next_eip_addend)

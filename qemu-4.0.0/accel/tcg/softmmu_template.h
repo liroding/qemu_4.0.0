@@ -110,6 +110,9 @@
 #define IS_HOOK_TLB     0x10
 #include "zx_utils/zx_linklist.h"
 #include "exec/exec-all.h"
+
+//#define LIRO_DEBUG_DPDK
+
 extern zx_plist_t zx_g_hook_ad_list;
 extern uint64_t cr3_mark;
 static uint64_t dram_cnt = 0;
@@ -201,6 +204,9 @@ WORD_TYPE helper_le_ld_name(CPUArchState *env, target_ulong addr,
     uint8_t tlb_filled_flag = 0;
     uint64_t gpa = 0;
     uint64_t tlb_mask = 0xFFF;
+    
+    X86CPU *cpu = x86_env_get_cpu(env);
+    
     //enoch add end
 
 
@@ -311,8 +317,18 @@ WORD_TYPE helper_le_ld_name(CPUArchState *env, target_ulong addr,
         entry->addr_code |= TLB_INVALID_MASK;
     }
 
+
+
+    #ifdef LIRO_DEBUG_DPDK
+    if(cpu->core_id == 1 || cpu->core_id == 2 || cpu->core_id == 3 || cpu->core_id == 4){
+        printf("ALL: [socket=%d,core=%d]APP READ: gva=%0lx, gpa=%0lx, size=%d.\n", \
+                    cpu->socket_id, cpu->core_id, addr, (addr&tlb_mask)+gpa, DATA_SIZE);
+    }
+    #endif
+
+
     if((is_hooked_addr(addr) & IS_HOOK_ADDR)) {
-        X86CPU *cpu = x86_env_get_cpu(env);
+ //       X86CPU *cpu = x86_env_get_cpu(env);
 
         uint8_t src;
         src = cpu->core_id;
@@ -321,8 +337,10 @@ WORD_TYPE helper_le_ld_name(CPUArchState *env, target_ulong addr,
         gpa += (addr & tlb_mask);
 
 //#ifdef DEBUG_SHOW_APP_REQ
+#ifndef LIRO_DEBUG_DPDK
         printf("[socket=%d,core=%d]APP READ: gva=%0lx, gpa=%0lx, size=%d.\n",
                     cpu->socket_id, cpu->core_id, addr, gpa, DATA_SIZE);
+#endif
 //#endif
 
 #ifdef EN_HOOK_TO_TB
@@ -591,14 +609,21 @@ void helper_le_st_name(CPUArchState *env, target_ulong addr, DATA_TYPE val,
         entry->ADDR_READ |= TLB_INVALID_MASK;
     }
 
+    #ifdef LIRO_DEBUG_DPDK
+    if(cpu->core_id == 1 || cpu->core_id==2 || cpu->core_id==3 || cpu->core_id==4){
+        printf("ALL: [socket=%d,core=%d]APP WRITE: gva=%0lx, gpa=%0lx, size=%d, data=%0lx.\n", \
+                    cpu->socket_id, cpu->core_id, addr, (addr&tlb_mask)+gpa, DATA_SIZE, val);
+    }
+    #endif 
     if(is_hooked_addr(addr) & IS_HOOK_ADDR) {
         uint8_t src;
         src = cpu->core_id;
         gpa += (addr & tlb_mask);
 
 //#ifdef DEBUG_SHOW_APP_REQ
-        printf("[socket=%d,core=%d]APP WRITE: gva=%0lx, gpa=%0lx, size=%d, data=%0lx.\n",
-                    cpu->socket_id, cpu->core_id, addr, gpa, DATA_SIZE, val);
+#ifndef LIRO_DEBUG_DPDK
+        printf("[socket=%d,core=%d]APP WRITE: gva=%0lx, gpa=%0lx, size=%d, data=%0lx.\n",cpu->socket_id, cpu->core_id, addr, gpa, DATA_SIZE, val);  
+#endif
 //#endif
 
 #ifdef EN_HOOK_TO_TB

@@ -3277,9 +3277,12 @@ static MemTxResult flatview_write_continue(FlatView *fv, hwaddr addr,
                potential bugs */
             val = ldn_p(buf, l);
             result |= memory_region_dispatch_write(mr, addr1, val, l, attrs);
+
+
         } else {
             /* RAM case */
             ptr = qemu_ram_ptr_length(mr->ram_block, addr1, &l, false);
+
             memcpy(ptr, buf, l);
             invalidate_and_set_dirty(mr, addr1, l);
         }
@@ -3315,6 +3318,9 @@ static MemTxResult flatview_write(FlatView *fv, hwaddr addr, MemTxAttrs attrs,
 
     l = len;
     mr = flatview_translate(fv, addr, &addr1, &l, true, attrs);
+
+//    printf("[LIRO-DEBUG-2] addr =0x%x len=0x%x func=%s\n",addr,l,__func__);
+
     result = flatview_write_continue(fv, addr, attrs, buf, len,
                                      addr1, l, mr);
 
@@ -3350,6 +3356,9 @@ MemTxResult flatview_read_continue(FlatView *fv, hwaddr addr,
             release_lock = false;
         }
 
+//        printf("[LIRO-DEBUG-4] addr =0x%x l=0x%x len=0x%x func=%s\n",addr,l,len,__func__);
+
+
         len -= l;
         buf += l;
         addr += l;
@@ -3375,6 +3384,10 @@ static MemTxResult flatview_read(FlatView *fv, hwaddr addr,
 
     l = len;
     mr = flatview_translate(fv, addr, &addr1, &l, false, attrs);
+
+
+//    printf("[LIRO-DEBUG-3] addr =0x%x len=0x%x func=%s\n",addr,l,__func__);
+
     return flatview_read_continue(fv, addr, attrs, buf, len,
                                   addr1, l, mr);
 }
@@ -3405,6 +3418,9 @@ MemTxResult address_space_write(AddressSpace *as, hwaddr addr,
     if (len > 0) {
         rcu_read_lock();
         fv = address_space_to_flatview(as);
+
+//        printf("[LIRO-DEBUG-1] addr =0x%x len=0x%x func=%s\n",addr,len,__func__);
+
         result = flatview_write(fv, addr, attrs, buf, len);
         rcu_read_unlock();
     }

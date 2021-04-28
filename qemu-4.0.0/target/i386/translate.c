@@ -7365,9 +7365,12 @@ static target_ulong disas_insn(DisasContext *s, CPUState *cpu)
             break;
 
         case 0xc8: /* monitor */
+
             if (!(s->cpuid_ext_features & CPUID_EXT_MONITOR) || s->cpl != 0) {
+
                 goto illegal_op;
             }
+
             gen_update_cc_op(s);
             gen_jmp_im(s, pc_start - s->cs_base);
             tcg_gen_mov_tl(s->A0, cpu_regs[R_EAX]);
@@ -7377,13 +7380,17 @@ static target_ulong disas_insn(DisasContext *s, CPUState *cpu)
             break;
 
         case 0xc9: /* mwait */
+
             if (!(s->cpuid_ext_features & CPUID_EXT_MONITOR) || s->cpl != 0) {
+
                 goto illegal_op;
             }
+
             gen_update_cc_op(s);
             gen_jmp_im(s, pc_start - s->cs_base);
             gen_helper_mwait(cpu_env, tcg_const_i32(s->pc - pc_start));
             gen_eob(s);
+
             break;
 
         case 0xca: /* clac */
