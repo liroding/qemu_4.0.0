@@ -33,6 +33,7 @@
 
 //#define DEBUG_XHCI
 //#define DEBUG_DATA
+#define   COSIM_DEBUG_XHCI
 
 #ifdef DEBUG_XHCI
 #define DPRINTF(...) fprintf(stderr, __VA_ARGS__)
@@ -46,7 +47,25 @@
 #define COMMAND_LIMIT   256
 #define TRANSFER_LIMIT  256
 
+
+#ifdef COSIM_DEBUG_XHCI
+
+   #define LEN_CAP         0x20
+   #define LEN_OPER        (0x400 + 0x10 * MAXPORTS)
+   #define LEN_RUNTIME     ((7 + 1) * 0x20)
+   #define LEN_DOORBELL    ((63 + 1) * 0x4)          // MAXSLOTS = 64   64->32
+   
+   #define OFF_OPER        LEN_CAP
+   #define OFF_RUNTIME     0x200
+   #define OFF_DOORBELL    0x100
+   #define OFF_MSIX_TABLE  0x3000
+   #define OFF_MSIX_PBA    0x3800
+   /* must be power of 2 */
+   #define LEN_REGS        0x4000
+#else
+   
 #define LEN_CAP         0x40
+
 #define LEN_OPER        (0x400 + 0x10 * MAXPORTS)
 #define LEN_RUNTIME     ((MAXINTRS + 1) * 0x20)
 #define LEN_DOORBELL    ((MAXSLOTS + 1) * 0x20)
@@ -68,6 +87,10 @@
 #if (OFF_DOORBELL + LEN_DOORBELL) > LEN_REGS
 # error Increase LEN_REGS
 #endif
+
+
+#endif
+
 
 /* bit definitions */
 #define USBCMD_RS       (1<<0)
@@ -488,6 +511,9 @@ static inline dma_addr_t xhci_mask64(uint64_t addr)
 static inline void xhci_dma_read_u32s(XHCIState *xhci, dma_addr_t addr,
                                       uint32_t *buf, size_t len)
 {
+#ifdef COSIM_DEBUG_XHCI
+    printf("[LIRO-DEBUG] Enter DMA READ \n");
+#endif
     int i;
 
     assert((len % sizeof(uint32_t)) == 0);
@@ -502,6 +528,9 @@ static inline void xhci_dma_read_u32s(XHCIState *xhci, dma_addr_t addr,
 static inline void xhci_dma_write_u32s(XHCIState *xhci, dma_addr_t addr,
                                        uint32_t *buf, size_t len)
 {
+#ifdef COSIM_DEBUG_XHCI
+    printf("[LIRO-DEBUG] Enter DMA WRITE\n");
+#endif
     int i;
     uint32_t tmp[5];
     uint32_t n = len / sizeof(uint32_t);
@@ -2784,11 +2813,15 @@ static uint64_t xhci_cap_read(void *ptr, hwaddr reg, unsigned size)
     }
 
     trace_usb_xhci_cap_read(reg, ret);
+#ifdef COSIM_DEBUG_XHCI
+    printf("[Enter cap read] reg=0x%x data = 0x%x  size = 0x%x\n",xhci->mem_cap.addr+reg,ret,size);
+#endif
     return ret;
 }
 
 static uint64_t xhci_port_read(void *ptr, hwaddr reg, unsigned size)
 {
+
     XHCIPort *port = ptr;
     uint32_t ret;
 
@@ -2807,6 +2840,9 @@ static uint64_t xhci_port_read(void *ptr, hwaddr reg, unsigned size)
     }
 
     trace_usb_xhci_port_read(port->portnr, reg, ret);
+#ifdef COSIM_DEBUG_XHCI
+    printf("[Enter port read] reg=0x%x data = 0x%x size = 0x%x\n",port->mem.addr+reg,ret,size);
+#endif
     return ret;
 }
 
@@ -2815,6 +2851,9 @@ static void xhci_port_write(void *ptr, hwaddr reg,
 {
     XHCIPort *port = ptr;
     uint32_t portsc, notify;
+#ifdef COSIM_DEBUG_XHCI
+    printf("[Enter port write] reg=0x%x val=0x%x size = 0x%x\n",__FILE__,port->mem.addr + reg,val,size);
+#endif
 
     trace_usb_xhci_port_write(port->portnr, reg, val);
 
@@ -2916,6 +2955,9 @@ static uint64_t xhci_oper_read(void *ptr, hwaddr reg, unsigned size)
     }
 
     trace_usb_xhci_oper_read(reg, ret);
+#ifdef COSIM_DEBUG_XHCI
+    printf("[Enter oper read] reg=0x%x data=0x%x size = 0x%x\n",xhci->mem_oper.addr+reg,ret,size);
+#endif
     return ret;
 }
 
@@ -2924,6 +2966,9 @@ static void xhci_oper_write(void *ptr, hwaddr reg,
 {
     XHCIState *xhci = ptr;
     DeviceState *d = DEVICE(ptr);
+#ifdef COSIM_DEBUG_XHCI
+    printf("[Enter oper write] reg=0x%x val= 0x%x  size = 0x%x\n",xhci->mem_oper.addr+reg,val,size);
+#endif
 
     trace_usb_xhci_oper_write(reg, val);
 
@@ -3033,13 +3078,20 @@ static uint64_t xhci_runtime_read(void *ptr, hwaddr reg,
     }
 
     trace_usb_xhci_runtime_read(reg, ret);
+#ifdef COSIM_DEBUG_XHCI
+    printf("[Enter runtime read] reg=0x%x data = 0x%x  size = 0x%x\n",xhci->mem_runtime.addr + reg,ret,size);
+#endif
     return ret;
 }
 
 static void xhci_runtime_write(void *ptr, hwaddr reg,
                                uint64_t val, unsigned size)
 {
+     
     XHCIState *xhci = ptr;
+#ifdef COSIM_DEBUG_XHCI
+    printf("[Enter runtime write] reg=0x%x val= 0x%x size = 0x%x\n",xhci->mem_runtime.addr + reg,val,size);
+#endif
     int v = (reg - 0x20) / 0x20;
     XHCIInterrupter *intr = &xhci->intr[v];
     trace_usb_xhci_runtime_write(reg, val);
@@ -3105,6 +3157,10 @@ static void xhci_runtime_write(void *ptr, hwaddr reg,
 static uint64_t xhci_doorbell_read(void *ptr, hwaddr reg,
                                    unsigned size)
 {
+#ifdef COSIM_DEBUG_XHCI
+    XHCIState *xhci = ptr;
+    printf("[Enter doorbell read] reg=0x%x  size = 0x%x\n",xhci->mem_doorbell.addr + reg,size);
+#endif
     /* doorbells always read as 0 */
     trace_usb_xhci_doorbell_read(reg, 0);
     return 0;
@@ -3115,6 +3171,9 @@ static void xhci_doorbell_write(void *ptr, hwaddr reg,
 {
     XHCIState *xhci = ptr;
     unsigned int epid, streamid;
+#ifdef COSIM_DEBUG_XHCI
+    printf("[Enter doorbell write] reg=0x%x val = 0x%x  size = 0x%x\n",xhci->mem_doorbell.addr + reg,val,size);
+#endif
 
     trace_usb_xhci_doorbell_write(reg, val);
 
@@ -3149,6 +3208,9 @@ static void xhci_doorbell_write(void *ptr, hwaddr reg,
 static void xhci_cap_write(void *opaque, hwaddr addr, uint64_t val,
                            unsigned width)
 {
+#ifdef COSIM_DEBUG_XHCI
+    printf("[Enter cap write] reg=0x%x val=0x%x size = 0x%x\n",addr,val,width);
+#endif
     /* nothing */
 }
 
@@ -3709,6 +3771,22 @@ static const TypeInfo xhci_info = {
     },
 };
 
+
+#ifdef COSIM_DEBUG_XHCI
+static uint32_t xhci_config_read(PCIDevice *dev,uint32_t addr,int len){
+    uint32_t rdata = 0;
+    rdata = pci_default_read_config(dev,addr,len);
+    printf("[Enter XHCI cfg read]  addr = 0x%lx data = 0x%x len = 0x%lx\n",addr,rdata,len);
+    return rdata;
+}
+
+static void xhci_config_write(PCIDevice *dev,uint32_t addr,uint32_t data,int len){
+    printf("[Enter XHCI cfg write] addr = 0x%lx data = 0x%x len=0x%x\n",addr,data,len);
+
+    pci_default_write_config(dev,addr,data,len);
+}
+#endif
+
 static void qemu_xhci_class_init(ObjectClass *klass, void *data)
 {
     PCIDeviceClass *k = PCI_DEVICE_CLASS(klass);
@@ -3716,6 +3794,12 @@ static void qemu_xhci_class_init(ObjectClass *klass, void *data)
     k->vendor_id    = PCI_VENDOR_ID_REDHAT;
     k->device_id    = PCI_DEVICE_ID_REDHAT_XHCI;
     k->revision     = 0x01;
+
+
+#ifdef COSIM_DEBUG_XHCI
+    k->config_read = xhci_config_read;
+    k->config_write = xhci_config_write;
+#endif
 }
 
 static void qemu_xhci_instance_init(Object *obj)
