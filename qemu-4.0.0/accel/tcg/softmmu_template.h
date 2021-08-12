@@ -112,6 +112,11 @@
 #include "exec/exec-all.h"
 
 //#define LIRO_DEBUG_DPDK
+#define DEBUG_SHOWLOG_MEM_INHOOK
+#define DEBUG_SHOWLOG_IO_INHOOK
+#define DEBUG_SHOWLOG_IO_NORMAL
+//#define DEBUG_SHOWLOG_TLBADDR
+//#define DEBUG_SHOWLOG_FUNC_ENTER
 
 extern zx_plist_t zx_g_hook_ad_list;
 extern uint64_t cr3_mark;
@@ -199,7 +204,9 @@ static inline DATA_TYPE glue(io_read, SUFFIX)(CPUArchState *env,
 WORD_TYPE helper_le_ld_name(CPUArchState *env, target_ulong addr,
                             TCGMemOpIdx oi, uintptr_t retaddr)
 {
-
+#ifdef DEBUG_SHOWLOG_FUNC_ENTER
+    printf("[Func Enter] APP Read addr = 0x%lx \n",addr);
+#endif
     //enoch add begin
     uint8_t tlb_filled_flag = 0;
     uint64_t gpa = 0;
@@ -263,10 +270,16 @@ WORD_TYPE helper_le_ld_name(CPUArchState *env, target_ulong addr,
             entry->addr_code |= TLB_INVALID_MASK;
         }
         if(is_hooked_addr(addr) & IS_HOOK_ADDR) {
-            printf("enochttss11, addr=%0lx\n", addr);
+#ifdef DEBUG_SHOWLOG_IO_INHOOK
+        printf("[HookRange][P1]-->IO Read addr=0x%lx size =0x%x \n",addr,DATA_SIZE);
+#endif
         }
         //enoch add end
-
+       // gpa +=(addr & tlb_mask);
+#ifdef DEBUG_SHOWLOG_IO_NORMAL
+        printf("[NORMAL]--> IO Read addr=0x%lx size =0x%x \n",addr,DATA_SIZE);
+#endif
+        //--------------------
 
         return res;
     }
@@ -295,10 +308,11 @@ WORD_TYPE helper_le_ld_name(CPUArchState *env, target_ulong addr,
             entry->addr_code |= TLB_INVALID_MASK;
         }
         if(is_hooked_addr(addr) & IS_HOOK_ADDR) {
-            printf("enochttss22, addr=%0lx\n", addr);
+#ifdef DEBUG_SHOWLOG_IO_INHOOK
+        printf("[HookRange][P2]-->IO Read addr=0x%lx size =0x%x \n",addr,DATA_SIZE);
+#endif
         }
         //enoch add end
-
 
         return res;
     }
@@ -332,16 +346,13 @@ WORD_TYPE helper_le_ld_name(CPUArchState *env, target_ulong addr,
 
         uint8_t src;
         src = cpu->core_id;
-        //printf("READ socketid=%=%lx,coreid=%lx.\n", cpu->socket_id, cpu->core_id);
 
         gpa += (addr & tlb_mask);
 
-//#ifdef DEBUG_SHOW_APP_REQ
-#ifndef LIRO_DEBUG_DPDK
-        printf("[socket=%d,core=%d]APP READ: gva=%0lx, gpa=%0lx, size=%d.\n",
-                    cpu->socket_id, cpu->core_id, addr, gpa, DATA_SIZE);
-#endif
-//#endif
+#ifdef DEBUG_SHOWLOG_MEM_INHOOK
+       printf("[HookRange]-->[socket=%d,core=%d]APP MEM READ: gva=%0lx, gpa=%0lx, size=%d.\n", \
+                   cpu->socket_id, cpu->core_id, addr, gpa, DATA_SIZE);
+#endif 
 
 #ifdef EN_HOOK_TO_TB
 #ifdef DEB_GVA_EN
@@ -467,6 +478,9 @@ static inline void glue(io_write, SUFFIX)(CPUArchState *env,
 void helper_le_st_name(CPUArchState *env, target_ulong addr, DATA_TYPE val,
                        TCGMemOpIdx oi, uintptr_t retaddr)
 {
+#ifdef DEBUG_SHOWLOG_FUNC_ENTER
+    printf("[Func Enter]-> APP Write addr=0x%lx  size =0x%x data=0x%lx\n",addr,DATA_SIZE,val);
+#endif
 
     //enoch add begin
     uint8_t tlb1_filled_flag = 0;
@@ -492,13 +506,16 @@ void helper_le_st_name(CPUArchState *env, target_ulong addr, DATA_TYPE val,
     /* If the TLB entry is for a different page, reload and try again.  */
     if (!tlb_hit(tlb_addr, addr)) {
         if (!VICTIM_TLB_HIT(addr_write, addr)) {
+         //     printf("[LIRO-DEBUG] d1\n");
             tlb_fill(ENV_GET_CPU(env), addr, DATA_SIZE, MMU_DATA_STORE,
             //enoch modify begin
                      //mmu_idx, retaddr);
                      mmu_idx, retaddr, &gpa);
+            
             if(is_hooked_addr(addr) & IS_HOOK_TLB) {
                 tlb1_filled_flag = 1;
             }
+            
             //enoch modify end
 
             index = tlb_index(env, mmu_idx, addr);
@@ -506,7 +523,9 @@ void helper_le_st_name(CPUArchState *env, target_ulong addr, DATA_TYPE val,
         }
         tlb_addr = tlb_addr_write(entry) & ~TLB_INVALID_MASK;
     }
-
+#ifdef DEBUG_SHOWLOG_TLBADDR
+    printf("[TLB_ADDR DEBUG] tlb_addr = 0x%lx mask=0x%lx result=0x%x\n",tlb_addr,TARGET_PAGE_MASK,(tlb_addr & ~TARGET_PAGE_MASK));
+#endif
     /* Handle an IO access.  */
     if (unlikely(tlb_addr & ~TARGET_PAGE_MASK)) {
         if ((addr & (DATA_SIZE - 1)) != 0) {
@@ -520,6 +539,7 @@ void helper_le_st_name(CPUArchState *env, target_ulong addr, DATA_TYPE val,
                                retaddr, tlb_addr & TLB_RECHECK);
 
 
+      //       printf("[LIRO-DEBUG] d2\n");
 
         //enoch add begin
         if(tlb1_filled_flag) {
@@ -528,11 +548,15 @@ void helper_le_st_name(CPUArchState *env, target_ulong addr, DATA_TYPE val,
             entry->ADDR_READ |= TLB_INVALID_MASK;
         }
         if(is_hooked_addr(addr) & IS_HOOK_ADDR) {
-            printf("enochttss33, addr=%0lx\n", addr);
+#ifdef DEBUG_SHOWLOG_IO_INHOOK
+        printf("[HookRange][P1]-->IO Write addr=0x%lx size =0x%x data=0x%lx\n",addr,DATA_SIZE,val);
+#endif
         }
         //enoch add end
-
-
+#ifdef DEBUG_SHOWLOG_IO_NORMAL
+        // gpa +=(addr & tlb_mask);
+        printf("[NORMAL]--> IO Write addr=0x%lx size =0x%x data=0x%lx\n",addr,DATA_SIZE,val);
+#endif
         return;
     }
 
@@ -540,6 +564,7 @@ void helper_le_st_name(CPUArchState *env, target_ulong addr, DATA_TYPE val,
     if (DATA_SIZE > 1
         && unlikely((addr & ~TARGET_PAGE_MASK) + DATA_SIZE - 1
                      >= TARGET_PAGE_SIZE)) {
+              printf("[LIRO-DEBUG] d3\n");
         int i;
         target_ulong page2;
         CPUTLBEntry *entry2;
@@ -551,6 +576,7 @@ void helper_le_st_name(CPUArchState *env, target_ulong addr, DATA_TYPE val,
         entry2 = tlb_entry(env, mmu_idx, page2);
         if (!tlb_hit_page(tlb_addr_write(entry2), page2)
             && !VICTIM_TLB_HIT(addr_write, page2)) {
+              printf("[LIRO-DEBUG] d4\n");
             tlb_fill(ENV_GET_CPU(env), page2, DATA_SIZE, MMU_DATA_STORE,
             //enoch modify begin
                      //mmu_idx, retaddr);
@@ -583,14 +609,19 @@ void helper_le_st_name(CPUArchState *env, target_ulong addr, DATA_TYPE val,
            }
 
            if(is_hooked_addr(addr) & IS_HOOK_ADDR) {
-               printf("enochttss44, addr=%0lx\n", addr);
+#ifdef DEBUG_SHOWLOG_IO_INHOOK
+        printf("[HookRange][P2]-->IO Write addr=0x%lx size =0x%x \n",addr,DATA_SIZE);
+#endif
            }
            //enoch add end
+     //   printf("[LIRO-DEBUG]IO_b Write addr=0x%lx  size =0x%x data=0x%lx\n",addr,DATA_SIZE,val);
 
         return;
     }
 
     haddr = addr + entry->addend;
+
+    //printf("[LIRO-DEBUG]addr =0x%lx entry.addend = 0x%lx\n",addr,entry->addend);
 #if DATA_SIZE == 1
     glue(glue(st, SUFFIX), _p)((uint8_t *)haddr, val);
 #else
@@ -615,16 +646,25 @@ void helper_le_st_name(CPUArchState *env, target_ulong addr, DATA_TYPE val,
                     cpu->socket_id, cpu->core_id, addr, (addr&tlb_mask)+gpa, DATA_SIZE, val);
     }
     #endif 
+
+    
+    #ifndef DEBUG_SHOWLOG_MEM_INHOOK
+        printf("addr= 0x%lx  gpa=0x%lx entry->addend=0x%lx\n",addr,gpa,entry->addend);
+        gpa +=(addr&tlb_mask);
+        printf("[socket=%d,core=%d]APP MEM WRITE: gva=%0lx, gpa=%0lx, size=%d, data=%0lx.\n", \
+                   cpu->socket_id, cpu->core_id, addr, gpa, DATA_SIZE, val);
+    #endif 
+    
+    
     if(is_hooked_addr(addr) & IS_HOOK_ADDR) {
         uint8_t src;
         src = cpu->core_id;
         gpa += (addr & tlb_mask);
 
-//#ifdef DEBUG_SHOW_APP_REQ
-#ifndef LIRO_DEBUG_DPDK
-        printf("[socket=%d,core=%d]APP WRITE: gva=%0lx, gpa=%0lx, size=%d, data=%0lx.\n",cpu->socket_id, cpu->core_id, addr, gpa, DATA_SIZE, val);  
+#ifdef DEBUG_SHOWLOG_MEM_INHOOK
+        printf("[HookRange]-->[socket=%d,core=%d]APP MEM WRITE: gva=%0lx, gpa=%0lx, size=%d, data=%0lx.\n",cpu->socket_id, cpu->core_id, addr, gpa, DATA_SIZE, val);  
 #endif
-//#endif
+       
 
 #ifdef EN_HOOK_TO_TB
 #ifdef DEB_GVA_EN
