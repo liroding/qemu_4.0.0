@@ -3781,9 +3781,9 @@ static uint32_t xhci_config_read(PCIDevice *dev,uint32_t addr,int len){
 }
 
 static void xhci_config_write(PCIDevice *dev,uint32_t addr,uint32_t data,int len){
-    printf("[Enter XHCI cfg write] addr = 0x%lx data = 0x%x len=0x%x\n",addr,data,len);
 
     pci_default_write_config(dev,addr,data,len);
+    printf("[Enter XHCI cfg write] addr = 0x%lx data = 0x%x len=0x%x\n",addr,data,len);
 }
 #endif
 
@@ -3791,8 +3791,8 @@ static void qemu_xhci_class_init(ObjectClass *klass, void *data)
 {
     PCIDeviceClass *k = PCI_DEVICE_CLASS(klass);
 
-    k->vendor_id    = PCI_VENDOR_ID_REDHAT;
-    k->device_id    = PCI_DEVICE_ID_REDHAT_XHCI;
+    k->vendor_id    = PCI_VENDOR_ID_ZX;
+    k->device_id    = PCI_DEVICE_ID_ZX_XHCI;
     k->revision     = 0x01;
 
 

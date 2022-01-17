@@ -87,6 +87,7 @@ extern bool pci_available;
 #define PCI_DEVICE_ID_VIRTIO_VSOCK       0x1012
 
 #define PCI_VENDOR_ID_REDHAT             0x1b36
+#define PCI_VENDOR_ID_ZX                 0x1D17   //add by liro
 #define PCI_DEVICE_ID_REDHAT_BRIDGE      0x0001
 #define PCI_DEVICE_ID_REDHAT_SERIAL      0x0002
 #define PCI_DEVICE_ID_REDHAT_SERIAL2     0x0003
@@ -100,6 +101,7 @@ extern bool pci_available;
 #define PCI_DEVICE_ID_REDHAT_PXB_PCIE    0x000b
 #define PCI_DEVICE_ID_REDHAT_PCIE_RP     0x000c
 #define PCI_DEVICE_ID_REDHAT_XHCI        0x000d
+#define PCI_DEVICE_ID_ZX_XHCI            0x9204   //add by liro
 #define PCI_DEVICE_ID_REDHAT_PCIE_BRIDGE 0x000e
 #define PCI_DEVICE_ID_REDHAT_MDPY        0x000f
 #define PCI_DEVICE_ID_REDHAT_QXL         0x0100
@@ -785,7 +787,7 @@ static inline int pci_dma_read(PCIDevice *dev, dma_addr_t addr,
 {
 
   //  printf("  -->[LIRO-DENUG] ---<%s:PCI_DMA_REDA> [INFO: paddr = 0x%x Len = 0x%x ]  File= %s  Func=%s ---- LINE=%d\n",dev->name,addr,len,__FILE__,__func__,__LINE__);
-	printf("  -->[LIRO-DENUG] ---<%s:PCI_DMA_REDA>  [INFO: paddr = 0x%x Len = 0x%x ]  Func=%s ---- LINE=%d\n",dev->name,addr,len,__func__,__LINE__);
+	//printf("  -->[LIRO-DENUG] ---<%s:PCI_DMA_REDA>  [INFO: paddr = 0x%x Len = 0x%x ]  Func=%s ---- LINE=%d\n",dev->name,addr,len,__func__,__LINE__);
 	return pci_dma_rw(dev, addr, buf, len, DMA_DIRECTION_TO_DEVICE);
 }
 
@@ -793,7 +795,7 @@ static inline int pci_dma_write(PCIDevice *dev, dma_addr_t addr,
                                 const void *buf, dma_addr_t len)
 {
 //    printf("  -->[LIRO-DENUG] ---<%s:PCI_DMA_WRITE> [INFO: paddr = 0x%x Len = 0x%x ]  File= %s  Func=%s ---- LINE=%d\n",dev->name,addr,len,__FILE__,__func__,__LINE__);
-	  printf("  -->[LIRO-DENUG] ---<%s:PCI_DMA_WRITE> [INFO: paddr = 0x%x Len = 0x%x ]  Func=%s ---- LINE=%d\n",dev->name,addr,len,__func__,__LINE__);
+	  //printf("  -->[LIRO-DENUG] ---<%s:PCI_DMA_WRITE> [INFO: paddr = 0x%x Len = 0x%x ]  Func=%s ---- LINE=%d\n",dev->name,addr,len,__func__,__LINE__);
 	return pci_dma_rw(dev, addr, (void *) buf, len, DMA_DIRECTION_FROM_DEVICE);
 }
 
