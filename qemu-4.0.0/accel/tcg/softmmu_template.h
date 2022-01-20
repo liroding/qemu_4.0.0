@@ -112,9 +112,9 @@
 #include "exec/exec-all.h"
 
 //#define LIRO_DEBUG_DPDK
-#define DEBUG_SHOWLOG_MEM_INHOOK
-#define DEBUG_SHOWLOG_IO_INHOOK
-#define DEBUG_SHOWLOG_IO_NORMAL
+//#define DEBUG_SHOWLOG_MEM_INHOOK
+//#define DEBUG_SHOWLOG_IO_INHOOK
+//#define DEBUG_SHOWLOG_IO_NORMAL
 //#define DEBUG_SHOWLOG_TLBADDR
 //#define DEBUG_SHOWLOG_FUNC_ENTER
 
@@ -271,7 +271,7 @@ WORD_TYPE helper_le_ld_name(CPUArchState *env, target_ulong addr,
         }
         if(is_hooked_addr(addr) & IS_HOOK_ADDR) {
 #ifdef DEBUG_SHOWLOG_IO_INHOOK
-        printf("[HookRange][P1]-->IO Read addr=0x%lx size =0x%x \n",addr,DATA_SIZE);
+        printf("[HookRange][P1]--> IO Read addr=0x%lx size =0x%x \n",addr,DATA_SIZE);
 #endif
         }
         //enoch add end
@@ -506,7 +506,6 @@ void helper_le_st_name(CPUArchState *env, target_ulong addr, DATA_TYPE val,
     /* If the TLB entry is for a different page, reload and try again.  */
     if (!tlb_hit(tlb_addr, addr)) {
         if (!VICTIM_TLB_HIT(addr_write, addr)) {
-         //     printf("[LIRO-DEBUG] d1\n");
             tlb_fill(ENV_GET_CPU(env), addr, DATA_SIZE, MMU_DATA_STORE,
             //enoch modify begin
                      //mmu_idx, retaddr);
@@ -539,7 +538,6 @@ void helper_le_st_name(CPUArchState *env, target_ulong addr, DATA_TYPE val,
                                retaddr, tlb_addr & TLB_RECHECK);
 
 
-      //       printf("[LIRO-DEBUG] d2\n");
 
         //enoch add begin
         if(tlb1_filled_flag) {
@@ -564,7 +562,6 @@ void helper_le_st_name(CPUArchState *env, target_ulong addr, DATA_TYPE val,
     if (DATA_SIZE > 1
         && unlikely((addr & ~TARGET_PAGE_MASK) + DATA_SIZE - 1
                      >= TARGET_PAGE_SIZE)) {
-              printf("[LIRO-DEBUG] d3\n");
         int i;
         target_ulong page2;
         CPUTLBEntry *entry2;
@@ -576,7 +573,6 @@ void helper_le_st_name(CPUArchState *env, target_ulong addr, DATA_TYPE val,
         entry2 = tlb_entry(env, mmu_idx, page2);
         if (!tlb_hit_page(tlb_addr_write(entry2), page2)
             && !VICTIM_TLB_HIT(addr_write, page2)) {
-              printf("[LIRO-DEBUG] d4\n");
             tlb_fill(ENV_GET_CPU(env), page2, DATA_SIZE, MMU_DATA_STORE,
             //enoch modify begin
                      //mmu_idx, retaddr);
@@ -648,7 +644,7 @@ void helper_le_st_name(CPUArchState *env, target_ulong addr, DATA_TYPE val,
     #endif 
 
     
-    #ifndef DEBUG_SHOWLOG_MEM_INHOOK
+    #ifdef DEBUG_SHOWLOG_MEM_INHOOK
         printf("addr= 0x%lx  gpa=0x%lx entry->addend=0x%lx\n",addr,gpa,entry->addend);
         gpa +=(addr&tlb_mask);
         printf("[socket=%d,core=%d]APP MEM WRITE: gva=%0lx, gpa=%0lx, size=%d, data=%0lx.\n", \
