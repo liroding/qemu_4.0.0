@@ -38,9 +38,14 @@ uint64_t cr3_mark;
 
 //liro debug add
 //#define LIRO_DEBUG_MONITOR_MWAIT
+//#define LIRO_DEBUG_IO
 
 void helper_outb(CPUX86State *env, uint32_t port, uint32_t data)
 {
+#ifdef LIRO_DEBUG_IO
+    printf("IO write  port=0x%04x data=0x%02x\n",port,(uint8_t)data);
+#endif
+
 #ifdef CONFIG_USER_ONLY
     fprintf(stderr, "outb: port=0x%04x, data=%02x\n", port, data);
 #else
@@ -51,6 +56,9 @@ void helper_outb(CPUX86State *env, uint32_t port, uint32_t data)
 
 target_ulong helper_inb(CPUX86State *env, uint32_t port)
 {
+#ifdef LIRO_DEBUG_IO
+    printf("IO read  port=0x%04x \n",port);
+#endif
 #ifdef CONFIG_USER_ONLY
     fprintf(stderr, "inb: port=0x%04x\n", port);
     return 0;
@@ -62,6 +70,9 @@ target_ulong helper_inb(CPUX86State *env, uint32_t port)
 
 void helper_outw(CPUX86State *env, uint32_t port, uint32_t data)
 {
+#ifdef LIRO_DEBUG_IO
+    printf("IO write  port=0x%04x data=0x%04x\n",port,(uint16_t)data);
+#endif
 #ifdef CONFIG_USER_ONLY
     fprintf(stderr, "outw: port=0x%04x, data=%04x\n", port, data);
 #else
@@ -72,6 +83,9 @@ void helper_outw(CPUX86State *env, uint32_t port, uint32_t data)
 
 target_ulong helper_inw(CPUX86State *env, uint32_t port)
 {
+#ifdef LIRO_DEBUG_IO
+    printf("IO read  port=0x%04x \n",port);
+#endif
 #ifdef CONFIG_USER_ONLY
     fprintf(stderr, "inw: port=0x%04x\n", port);
     return 0;
@@ -83,6 +97,9 @@ target_ulong helper_inw(CPUX86State *env, uint32_t port)
 
 void helper_outl(CPUX86State *env, uint32_t port, uint32_t data)
 {
+#ifdef LIRO_DEBUG_IO
+    printf("IO write  port=0x%04x data=0x%08x\n",port,data);
+#endif
 #ifdef CONFIG_USER_ONLY
     fprintf(stderr, "outw: port=0x%04x, data=%08x\n", port, data);
 #else
@@ -93,6 +110,9 @@ void helper_outl(CPUX86State *env, uint32_t port, uint32_t data)
 
 target_ulong helper_inl(CPUX86State *env, uint32_t port)
 {
+#ifdef LIRO_DEBUG_IO
+    printf("IO read  port=0x%04x \n",port);
+#endif
 #ifdef CONFIG_USER_ONLY
     fprintf(stderr, "inl: port=0x%04x\n", port);
     return 0;
