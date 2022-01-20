@@ -1,9 +1,16 @@
 #!/bin/sh
 arg1=$1
 echo "--------------start ${arg1}-----------------"
+if [ "$arg1" = "cfg" ]; then
+  mkdir qemu-4.0.0/build
+  cd qemu-4.0.0/build
+  ../configure --target-list=x86_64-softmmu --python=/usr/bin/python3 --cc=/usr/bin/gcc --disable-docs --disable-curl --disable-gnutls --disable-virtfs --disable-vnc --disable-sdl
+  make -j8
+  cd -
+  pwd
+fi
+
 if [ "$arg1" = "bios" ]; then
-# ---------------------------------------------------- bios startup  perfect  -------------------------------------------------------
-#    gdb --args qemu-4.0.0/build/x86_64-softmmu/qemu-system-x86_64 -m 512M -smp 1,sockets=1,cores=1 --accel tcg,thread=multi  -bios image/OVMF/bios.fd -machine q35 -device edu -device qemu-xhci,id=zx_usb1 -hda fat:rw:image/app -serial file:image/app/app.log  -debugcon file:debug.log -global isa-debugcon.iobase=0x402  -serial pty #-S -s #-monitor stdio
   
 ########################[byo bios] gdb 输出qemu log,不加多余debug信息
    qemu-4.0.0/build/x86_64-softmmu/qemu-system-x86_64 -m 512M \
