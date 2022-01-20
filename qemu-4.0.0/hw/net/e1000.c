@@ -734,7 +734,7 @@ static void
 start_xmit(E1000State *s)
 {
     
-    printf("[LIRO-DENUG] --------------File= %s  Func=%s ---- LINE=%d   <beg>\n",__FILE__,__func__,__LINE__);
+    //printf("[LIRO-DENUG] --------------File= %s  Func=%s ---- LINE=%d   <beg>\n",__FILE__,__func__,__LINE__);
 
     PCIDevice *d = PCI_DEVICE(s);
     dma_addr_t base;
@@ -750,7 +750,7 @@ start_xmit(E1000State *s)
     while (s->mac_reg[TDH] != s->mac_reg[TDT]) {
 
 
-    	printf("!!! [LIRO-DEBUG] TDT = %x\n",s->mac_reg[TDT]);
+    	//printf("!!! [LIRO-DEBUG] TDT = %x\n",s->mac_reg[TDT]);
 
 
         base = tx_desc_base(s) +
@@ -758,9 +758,7 @@ start_xmit(E1000State *s)
 
         pci_dma_read(d, base, &desc, sizeof(desc));
 
-        printf("    -->[LIRO-DENUG] -------[INFO: descriptor_index %d, desc_bufaddr= %p,desc_lowdata=0x%x,desc_upperdata=0x %x ]\n", s->mac_reg[TDH],
-               (void *)(intptr_t)desc.buffer_addr, desc.lower.data,
-               desc.upper.data);
+        //printf("    -->[LIRO-DENUG] -------[INFO: descriptor_index %d, desc_bufaddr= %p,desc_lowdata=0x%x,desc_upperdata=0x %x ]\n", s->mac_reg[TDH],(void *)(intptr_t)desc.buffer_addr, desc.lower.data,desc.upper.data);
 
 
         DBGOUT(TX, "index %d: %p : %x %x\n", s->mac_reg[TDH],
@@ -785,7 +783,7 @@ start_xmit(E1000State *s)
         }
     }
     set_ics(s, 0, cause);
-    printf("[LIRO-DENUG] --------------File= %s  Func=%s ---- LINE=%d   <end>\n\n",__FILE__,__func__,__LINE__);
+    //printf("[LIRO-DENUG] --------------File= %s  Func=%s ---- LINE=%d   <end>\n\n",__FILE__,__func__,__LINE__);
 }
 
 static int
@@ -908,8 +906,8 @@ e1000_receive_iov(NetClientState *nc, const struct iovec *iov, int iovcnt)
     if (!e1000x_hw_rx_enabled(s->mac_reg)) {
         return -1;
     }
-    printf("[LIRO-DENUG] --------------File= %s  Func=%s ---- LINE=%d   <beg>\n",__FILE__,__func__,__LINE__);
-    printf("[LIRO_DEBUG]: Receive the total data size=0x%lx\n",size);
+    //printf("[LIRO-DENUG] --------------File= %s  Func=%s ---- LINE=%d   <beg>\n",__FILE__,__func__,__LINE__);
+    //printf("[LIRO_DEBUG]: Receive the total data size=0x%lx\n",size);
 
 
     if (timer_pending(s->flush_queue_timer)) {
@@ -971,7 +969,7 @@ e1000_receive_iov(NetClientState *nc, const struct iovec *iov, int iovcnt)
         }
         base = rx_desc_base(s) + sizeof(desc) * s->mac_reg[RDH];
 
-    	printf("!!! [LIRO-DEBUG] RDH = %x\n",s->mac_reg[RDH]);
+    	//printf("!!! [LIRO-DEBUG] RDH = %x\n",s->mac_reg[RDH]);
 
 
         pci_dma_read(d, base, &desc, sizeof(desc));
@@ -1034,7 +1032,7 @@ e1000_receive_iov(NetClientState *nc, const struct iovec *iov, int iovcnt)
 
     set_ics(s, 0, n);
 
-    printf("[LIRO-DENUG] --------------File= %s  Func=%s ---- LINE=%d   <end>\n\n",__FILE__,__func__,__LINE__);
+    //printf("[LIRO-DENUG] --------------File= %s  Func=%s ---- LINE=%d   <end>\n\n",__FILE__,__func__,__LINE__);
 
     return size;
 }
@@ -1320,7 +1318,7 @@ e1000_mmio_write(void *opaque, hwaddr addr, uint64_t val,
     E1000State *s = opaque;
     unsigned int index = (addr & 0x1ffff) >> 2;
 
-	printf("[LIRO-DEBUG]: --- <E1000: MMIO write>   [INFO: reg=0x%llx value=0x%llx size=0x%llx func=%s ]\n",index<<2,val,size,__func__);
+	//printf("[LIRO-DEBUG]: --- <E1000: MMIO write>   [INFO: reg=0x%llx value=0x%llx size=0x%llx func=%s ]\n",index<<2,val,size,__func__);
 
 
     if (index < NWRITEOPS && macreg_writeops[index]) {
@@ -1355,7 +1353,7 @@ e1000_mmio_read(void *opaque, hwaddr addr, unsigned size)
     E1000State *s = opaque;
     unsigned int index = (addr & 0x1ffff) >> 2;
 
-	printf("[LIRO-DEBUG]: --- <E1000: MMIO Read>   [INFO: reg=0x%llx size=0x%llx func=%s ]\n",index<<2,size,__func__);
+	//printf("[LIRO-DEBUG]: --- <E1000: MMIO Read>   [INFO: reg=0x%llx size=0x%llx func=%s ]\n",index<<2,size,__func__);
 
     if (index < NREADOPS && macreg_readops[index]) {
         if (!(mac_reg_access[index] & MAC_ACCESS_FLAG_NEEDED)
