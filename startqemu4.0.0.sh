@@ -20,7 +20,7 @@ if [ "$arg1" = "bios" ]; then
         -device qemu-xhci,id=zx_usb1,bus=pcie.0,addr=12.0 \
         -debugcon file:boot.log -global isa-debugcon.iobase=0x402 \
         -monitor stdio \
-        -d in_asm,int -D debug.log -d guest_errors 
+        -d in_asm,int,guest_errors -D debug.log
         #-tpmdev tpm-emulator,id=tpm0  
 
  
