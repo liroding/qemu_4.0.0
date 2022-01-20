@@ -3,9 +3,30 @@ arg1=$1
 echo "--------------start ${arg1}-----------------"
 if [ "$arg1" = "bios" ]; then
 # ---------------------------------------------------- bios startup  perfect  -------------------------------------------------------
-#qemu-4.0.0/build/x86_64-softmmu/qemu-system-x86_64 -m 4G -smp 8,sockets=1,cores=8 --accel tcg,thread=multi  -bios /home/liroding/workspace/app/OVMF_enoch.fd -machine q35 -device edu -drive file=fat:rw:/home/liroding/workspace/app -serial file:/home/liroding/workspace/app/app.log -d guest_errors -debugcon file:debug.log -global isa-debugcon.iobase=0x402 -s
-#qemu-4.0.0/build/x86_64-softmmu/qemu-system-x86_64 -m 4G -smp 8,sockets=1,cores=8 -bios /home/liroding/workspace/app/OVMF_enoch.fd -machine q35 -cpu Broadwell -device edu -drive file=fat:rw:/home/liroding/workspace/app -serial file:/home/liroding/workspace/app/app.log -d guest_errors -debugcon file:debug.log -global isa-debugcon.iobase=0x402 -s
-    gdb --args qemu-4.0.0/build/x86_64-softmmu/qemu-system-x86_64 -m 4G -smp 1,sockets=1,cores=1 --accel tcg,thread=multi  -bios /home/liroding/workspace/app/OVMF/OVMF_enoch.fd -machine q35 -device edu -hda fat:rw:/home/liroding/workspace/app -serial file:/home/liroding/workspace/app/app.log  -debugcon file:debug.log -monitor stdio
+#    gdb --args qemu-4.0.0/build/x86_64-softmmu/qemu-system-x86_64 -m 512M -smp 1,sockets=1,cores=1 --accel tcg,thread=multi  -bios image/OVMF/bios.fd -machine q35 -device edu -device qemu-xhci,id=zx_usb1 -hda fat:rw:image/app -serial file:image/app/app.log  -debugcon file:debug.log -global isa-debugcon.iobase=0x402  -serial pty #-S -s #-monitor stdio
+  
+########################[byo bios] gdb 输出qemu log,不加多余debug信息
+   qemu-4.0.0/build/x86_64-softmmu/qemu-system-x86_64 -m 512M \
+        -smp 1,sockets=1,cores=1 --accel tcg,thread=multi \
+        -bios image/OVMF/bios.fd -machine q35 \
+        -device edu  -hda fat:rw:image/app \
+        -device qemu-xhci,id=zx_usb1,bus=pcie.0,addr=12.0 \
+        -debugcon file:boot.log -global isa-debugcon.iobase=0x402 \
+        -monitor stdio \
+        -d in_asm,int -D debug.log -d guest_errors 
+        #-tpmdev tpm-emulator,id=tpm0  
+
+ 
+########################[edk2 bios] gdb 输出qemu log,不加多余debug信息
+#   qemu-4.0.0/build/x86_64-softmmu/qemu-system-x86_64 -m 512M \
+#        -smp 1,sockets=1,cores=1 --accel tcg,thread=multi \
+#        -bios image/OVMF/OVMF_enoch.fd -machine q35 \
+#        -device edu  -hda fat:rw:image/app \
+#        -device qemu-xhci,id=zx_usb1,bus=pcie.0,addr=12.0 \
+#        -debugcon file:boot.log -global isa-debugcon.iobase=0x402 \
+#        -monitor stdio \
+#        -d in_asm,int -D debug.log -d guest_errors 
+#        #-tpmdev tpm-emulator,id=tpm0  
 
 fi
 
