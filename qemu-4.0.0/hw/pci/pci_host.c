@@ -85,6 +85,8 @@ void pci_host_config_write_common(PCIDevice *pci_dev, uint32_t addr,
     trace_pci_cfg_write(pci_dev->name, PCI_SLOT(pci_dev->devfn),
                         PCI_FUNC(pci_dev->devfn), addr, val);
     pci_dev->config_write(pci_dev, addr, val, MIN(len, limit - addr));
+    printf("[liro-debug] dev=%s cfg_wr addr=0x%x data=0x%x size=0x%x\n",pci_dev->name,addr,val,len);
+
 }
 
 uint32_t pci_host_config_read_common(PCIDevice *pci_dev, uint32_t addr,
@@ -109,6 +111,7 @@ uint32_t pci_host_config_read_common(PCIDevice *pci_dev, uint32_t addr,
     trace_pci_cfg_read(pci_dev->name, PCI_SLOT(pci_dev->devfn),
                        PCI_FUNC(pci_dev->devfn), addr, ret);
 
+    printf("[liro-debug] dev=%s cfg_rd addr=0x%x data=0x%x size=0x%x\n",pci_dev->name,addr,ret,len);
     return ret;
 }
 
